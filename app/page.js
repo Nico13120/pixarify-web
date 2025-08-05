@@ -8,62 +8,68 @@ export default function Home() {
   const [videoUrl, setVideoUrl] = useState(null);
 
   const handleUpload = async () => {
-    if (!file) return;
+    if (!file) return alert("Choisis un fichier d'abord !");
     setLoading(true);
 
-    try {
-      const formData = new FormData();
-      formData.append("file", file);
+    const formData = new FormData();
+    formData.append("file", file);
 
+    try {
       const res = await fetch("/api/pixarify", {
         method: "POST",
         body: formData,
       });
 
       const data = await res.json();
-      setVideoUrl(data.videoUrl);
+      if (data.videoUrl) {
+        setVideoUrl(data.videoUrl); // on récupère l'URL générée
+      } else {
+        alert("Erreur : " + (data.error || "inconnue"));
+      }
     } catch (err) {
       console.error(err);
+      alert("Erreur lors de l'envoi !");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-10 bg-gradient-to-br from-purple-200 to-pink-200">
-      <div className="bg-white shadow-2xl rounded-2xl p-8 w-full max-w-lg text-center">
-        <h1 className="text-3xl font-bold mb-4">🎬 Pixarify</h1>
-        <p className="text-gray-600 mb-6">Transforme ton film en mode Pixar ✨</p>
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-pink-200 to-purple-300">
+      <div className="bg-white p-8 rounded-2xl shadow-xl text-center w-[400px]">
+        <h1 className="text-2xl font-bold mb-2">🎬 Pixarify</h1>
+        <p className="mb-4 text-gray-600">Transforme ton film en mode Pixar ✨</p>
 
         <input
           type="file"
           accept="video/*"
-          onChange={(e) => setFile(e.target.files?.[0] || null)}
+          onChange={(e) => setFile(e.target.files[0])}
           className="mb-4"
         />
 
         <button
           onClick={handleUpload}
-          disabled={!file || loading}
-          className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-xl w-full"
+          disabled={loading}
+          className="w-full py-2 px-4 bg-purple-600 text-white font-bold rounded-lg hover:bg-purple-700 disabled:opacity-50"
         >
           {loading ? "⏳ Transformation..." : "✨ Transformer en Pixar"}
         </button>
 
+        {/* Affichage de la vidéo transformée */}
         {videoUrl && (
           <div className="mt-6">
-            <h2 className="text-xl font-semibold mb-2">Résultat :</h2>
-            <video src={videoUrl} controls className="rounded-xl w-full" />
-            <a
-              href={videoUrl}
-              download
-              className="block mt-2 text-blue-600 hover:underline"
-            >
-              ⬇️ Télécharger
-            </a>
+            <h2 className="font-semibold mb-2">Résultat :</h2>
+            <video
+              src={videoUrl}
+              controls
+              autoPlay
+              className="w-full rounded-lg shadow-lg"
+            />
           </div>
         )}
       </div>
-</main>
+    </div>
   );
 }
+
+
